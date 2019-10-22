@@ -23,9 +23,11 @@
 #include <QTimer>
 #include <QCloseEvent>
 #include <QComboBox>
+#include <QListWidgetItem>
 
 #include "detection.h"
 #include "image.h"
+#include "object.h"
 
 namespace Ui {
   class MainWindow;
@@ -40,20 +42,28 @@ public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
-  void initialize();
   void update();
+
+  void click(int x, int y);
 
 public slots:
   void openImagesDataset();
   void keyPressEvent(QKeyEvent *ev) override;
+  void addNewObject();
+  void selectObject(QListWidgetItem* item);
+
 
 private:
   Ui::MainWindow *ui;
 
   std::vector<Image> images;
 
-  int index = -1;
+  int cur_image_index = -1;
+  int cur_obj_index = -1;
 
+  std::vector<Object> objects;
+
+  int objectCounter = 0;
 
 };
 

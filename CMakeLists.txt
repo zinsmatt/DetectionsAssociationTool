@@ -72,6 +72,8 @@ add_executable(BoundingBoxMe
 #    ${SRC_DIRECTORY}/lidarFrameManager.h
 #    ${SRC_DIRECTORY}/logger.cxx
 #    ${SRC_DIRECTORY}/logger.h
+    ${SRC_DIRECTORY}/object.cxx
+    ${SRC_DIRECTORY}/object.h
     ${SRC_DIRECTORY}/image.cxx
     ${SRC_DIRECTORY}/image.h
     ${SRC_DIRECTORY}/customLabel.cxx

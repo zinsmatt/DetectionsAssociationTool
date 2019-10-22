@@ -27,6 +27,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QLabel>
+#include <QListWidget>
 #include <unsupported/Eigen/EulerAngles>
 
 
@@ -39,7 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
   statusBar()->showMessage("Auto save disabled");
 
   QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImagesDataset()));
-
+  QObject::connect(ui->add_object_button, SIGNAL(clicked(bool)), this, SLOT(addNewObject()));
+  QObject::connect(ui->objects_list, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(selectObject(QListWidgetItem*)));
 }
 
 MainWindow::~MainWindow()
@@ -47,19 +49,40 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::initialize()
-{
-}
-
 void MainWindow::update()
 {
-  std::cout << "update " << index << std::endl;
+  const Detection* obs = nullptr;
+  if (cur_obj_index >= 0)
+    obs = objects[cur_obj_index].getObservation(cur_image_index);
+
   cv::Mat dest;
-  cv::cvtColor(images[index].image, dest, cv::COLOR_BGR2RGB);
+  cv::cvtColor(images[cur_image_index].image, dest, cv::COLOR_BGR2RGB);
+  if (obs)
+  {
+    cv::ellipse(dest, cv::RotatedRect(cv::Point2i(obs->x, obs->y), cv::Size2i(obs->w, obs->h), obs->a),
+                cv::Scalar(0, 255, 0), 3);
+  }
   QImage image_qt= QImage((uchar*) dest.data, dest.cols, dest.rows, dest.step, QImage::Format_RGB888);
   ui->image_view->setPixmap(QPixmap::fromImage(image_qt));
   ui->image_view->show();
-  ui->image_label->setText(QString::fromStdString(images[index].name + " (" + std::to_string(index) + ")"));
+  ui->image_label->setText(QString::fromStdString(images[cur_image_index].name + " (" + std::to_string(cur_image_index) + ")"));
+
+  ui->image_view->setMainWindow(this);
+  ui->image_label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  ui->image_label->setScaledContents(false);
+}
+
+void MainWindow::click(int x, int y)
+{
+  if (cur_obj_index >= 0)
+  {
+    const auto* det = images[cur_image_index].findDetectionUnderPosition(x, y);
+    if (det)
+    {
+      objects[cur_obj_index].setObservation(cur_image_index, *det);
+      update();
+    }
+  }
 }
 
 void MainWindow::openImagesDataset()
@@ -149,7 +172,7 @@ void MainWindow::openImagesDataset()
 
     if (images.size() > 0)
     {
-      index = 0;
+      cur_image_index = 0;
     }
     update();
   }
@@ -161,15 +184,29 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
   {
     if (ev->key() == 16777236)  // next
     {
-      index = (index + 1) % images.size();
+      cur_image_index = (cur_image_index + 1) % images.size();
     }
     else if (ev->key() == 16777234)
     {
-      index -= 1;
-      if (index < 0)
-        index += images.size();
+      cur_image_index -= 1;
+      if (cur_image_index < 0)
+        cur_image_index += images.size();
     }
     update();
   }
+}
+
+void MainWindow::addNewObject()
+{
+  objects.emplace_back(Object(objectCounter++, images.size()));
+  ui->objects_list->addItem(objects.back().getText());
+}
+
+void MainWindow::selectObject(QListWidgetItem *item)
+{
+  auto name = item->text().toStdString();
+  auto num = std::stoi(name.substr(7));
+  cur_obj_index = num;
+  std::cout << "selected object " << num << std::endl;
 }
 

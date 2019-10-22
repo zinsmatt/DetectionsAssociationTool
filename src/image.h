@@ -20,6 +20,7 @@ struct Image
   std::vector<Detection> detections;
 
   void loadDetectionsFile(const std::string& filename);
+  const Detection* findDetectionUnderPosition(int x, int y);
 
 };
 
