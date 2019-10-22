@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Bounding Box Me!</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normalon>:/icon/cube1.svg</normalon>
+   </iconset>
+  </property>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="actionOpenBBox"/>
+    <addaction name="actionOpenCameraFrames"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionRestart"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionOpen"/>
+   <addaction name="actionOpenBBox"/>
+   <addaction name="actionOpenCameraFrames"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionRestart"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_Camera">
+   <property name="windowTitle">
+    <string>Camera</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QLabel" name="label_Frame">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="../assets/resources.qrc">
+     <normaloff>:/icon/folder-open-solid.svg</normaloff>:/icon/folder-open-solid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Open Lidar</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Lidar Point Clouds dataset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="icon">
+    <iconset resource="../assets/resources.qrc">
+     <normaloff>:/icon/save-solid.svg</normaloff>:/icon/save-solid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save BBox</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save Bounding Box Dataset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionRestart">
+   <property name="icon">
+    <iconset resource="../assets/resources.qrc">
+     <normaloff>:/icon/redo-alt-solid.svg</normaloff>:/icon/redo-alt-solid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Restart</string>
+   </property>
+   <property name="toolTip">
+    <string>Restart</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionOpenBBox">
+   <property name="icon">
+    <iconset resource="../assets/resources.qrc">
+     <normaloff>:/icon/box-open-solid.svg</normaloff>:/icon/box-open-solid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Open BBox</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Bounding Box Dataset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionOpenCameraFrames">
+   <property name="icon">
+    <iconset resource="../assets/resources.qrc">
+     <normaloff>:/icon/image-open.svg</normaloff>:/icon/image-open.svg</iconset>
+   </property>
+   <property name="text">
+    <string>OpenCameraFrames</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Camera frames</string>
+   </property>
+  </action>
+  <zorder>dockWidget_Camera</zorder>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="../assets/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
