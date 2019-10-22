@@ -18,6 +18,36 @@
     <normalon>:/icon/cube1.svg</normalon>
    </iconset>
   </property>
+  <widget class="QWidget" name="central_widget">
+   <layout class="QVBoxLayout" name="vert_layout">
+    <item>
+     <widget class="QLabel" name="image_label">
+      <property name="maximumSize">
+       <size>
+        <width>9999999</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="CustomLabel" name="image_view">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="enabled">
     <bool>true</bool>
@@ -157,6 +187,13 @@
   <zorder>dockWidget_Camera</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CustomLabel</class>
+   <extends>QLabel</extends>
+   <header>customLabel.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../assets/resources.qrc"/>
  </resources>

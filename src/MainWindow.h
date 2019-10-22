@@ -24,7 +24,8 @@
 #include <QCloseEvent>
 #include <QComboBox>
 
-
+#include "detection.h"
+#include "image.h"
 
 namespace Ui {
   class MainWindow;
@@ -40,11 +41,19 @@ public:
   ~MainWindow();
 
   void initialize();
+  void update();
 
-
+public slots:
+  void openImagesDataset();
+  void keyPressEvent(QKeyEvent *ev) override;
 
 private:
   Ui::MainWindow *ui;
+
+  std::vector<Image> images;
+
+  int index = -1;
+
 
 };
 

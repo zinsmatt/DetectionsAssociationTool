@@ -35,6 +35,8 @@ set(CMAKE_AUTOUIC ON)
 #find_package(VTK 8.1.1 REQUIRED)
 #include(${VTK_USE_FILE})
 
+find_package(OpenCV REQUIRED)
+
 # YAML-cpp
 find_package(yaml-cpp REQUIRED)
 
@@ -70,6 +72,12 @@ add_executable(BoundingBoxMe
 #    ${SRC_DIRECTORY}/lidarFrameManager.h
 #    ${SRC_DIRECTORY}/logger.cxx
 #    ${SRC_DIRECTORY}/logger.h
+    ${SRC_DIRECTORY}/image.cxx
+    ${SRC_DIRECTORY}/image.h
+    ${SRC_DIRECTORY}/customLabel.cxx
+    ${SRC_DIRECTORY}/customLabel.h
+    ${SRC_DIRECTORY}/detection.cxx
+    ${SRC_DIRECTORY}/detection.h
     ${SRC_DIRECTORY}/main.cxx
     ${SRC_DIRECTORY}/MainWindow.cxx
     ${SRC_DIRECTORY}/MainWindow.h
@@ -98,6 +106,7 @@ target_include_directories(BoundingBoxMe SYSTEM PRIVATE
     )
 target_link_libraries(BoundingBoxMe PRIVATE
   Qt5::Widgets
+  ${OpenCV_LIBS}
   #${VTK_LIBRARIES}
   Eigen3::Eigen
   ${YAML_CPP_LIBRARIES}
