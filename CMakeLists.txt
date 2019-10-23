@@ -31,47 +31,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# VTK dependancy
-#find_package(VTK 8.1.1 REQUIRED)
-#include(${VTK_USE_FILE})
-
 find_package(OpenCV REQUIRED)
-
-# YAML-cpp
-#find_package(yaml-cpp REQUIRED)
 
 set(SRC_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
 # The main application
-add_executable(BoundingBoxMe
+add_executable(DetectionsAssociationTool
     assets/resources.qrc
-#    ${SRC_DIRECTORY}/boundingBox.h
-#    ${SRC_DIRECTORY}/boundingBox.cxx
-#    ${SRC_DIRECTORY}/boundingBoxInformation_ui.ui
-#    ${SRC_DIRECTORY}/boundingBoxInformation_ui.cxx
-#    ${SRC_DIRECTORY}/boundingBoxInformation_ui.h
-#    ${SRC_DIRECTORY}/boundingBoxManager.h
-#    ${SRC_DIRECTORY}/boundingBoxManager.cxx
-#    ${SRC_DIRECTORY}/cameraFrame.cxx
-#    ${SRC_DIRECTORY}/cameraFrame.h
-#    ${SRC_DIRECTORY}/cameraFramesManager.cxx
-#    ${SRC_DIRECTORY}/cameraFramesManager.h
-#    ${SRC_DIRECTORY}/classesManager.cxx
-#    ${SRC_DIRECTORY}/classesManager.h
-#    ${SRC_DIRECTORY}/datasetHelper.cxx
-#    ${SRC_DIRECTORY}/datasetHelper.h
-#    ${SRC_DIRECTORY}/displayManager_ui.cxx
-#    ${SRC_DIRECTORY}/displayManager_ui.h
-#    ${SRC_DIRECTORY}/displayManager_ui.ui
-#    ${SRC_DIRECTORY}/mainViewInteractorStyle.cxx
-#    ${SRC_DIRECTORY}/mainViewInteractorStyle.h
-#    ${SRC_DIRECTORY}/lidarFrame.cxx
-#    ${SRC_DIRECTORY}/lidarFrame.h
-#    ${SRC_DIRECTORY}/lidarFrameManager.cxx
-#    ${SRC_DIRECTORY}/lidarFrameManager.h
-#    ${SRC_DIRECTORY}/logger.cxx
-#    ${SRC_DIRECTORY}/logger.h
     ${SRC_DIRECTORY}/utils.cxx
     ${SRC_DIRECTORY}/utils.h
     ${SRC_DIRECTORY}/object.cxx
@@ -86,34 +53,15 @@ add_executable(BoundingBoxMe
     ${SRC_DIRECTORY}/MainWindow.cxx
     ${SRC_DIRECTORY}/MainWindow.h
     ${SRC_DIRECTORY}/MainWindow.ui
-#    ${SRC_DIRECTORY}/sideViewsInteractorStyle.cxx
-#    ${SRC_DIRECTORY}/sideViewsInteractorStyle.h
-#    ${SRC_DIRECTORY}/switchViewportCallback.cxx
-#    ${SRC_DIRECTORY}/switchViewportCallback.h
-#    ${SRC_DIRECTORY}/timeStepsManager.h
-#    ${SRC_DIRECTORY}/timeStepsManager.cxx
-#    ${SRC_DIRECTORY}/timeStepsManager_ui.cxx
-#    ${SRC_DIRECTORY}/timeStepsManager_ui.h
-#    ${SRC_DIRECTORY}/timeStepsManager_ui.ui
-#    ${SRC_DIRECTORY}/vtkBoundingBoxManipulatorWidget.cxx
-#    ${SRC_DIRECTORY}/vtkBoundingBoxManipulatorWidget.h
-#    ${SRC_DIRECTORY}/vtkEigenUtils.cxx
-#    ${SRC_DIRECTORY}/vtkEigenUtils.h
-#    ${SRC_DIRECTORY}/vtkBoundingBoxSource.h
-#    ${SRC_DIRECTORY}/vtkBoundingBoxSource.cxx
 )
 
-target_include_directories(BoundingBoxMe SYSTEM PRIVATE
-    #${VTK_INCLUDE_DIRS}
-#    ${YAML_CPP_INCLUDE_DIR}
+target_include_directories(DetectionsAssociationTool SYSTEM PRIVATE
     ${SRC_DIRECTORY}/
     )
-target_link_libraries(BoundingBoxMe PRIVATE
+target_link_libraries(DetectionsAssociationTool PRIVATE
   Qt5::Widgets
   ${OpenCV_LIBS}
-  #${VTK_LIBRARIES}
   Eigen3::Eigen
- # ${YAML_CPP_LIBRARIES}
   stdc++fs          # for std::filesystem
   )
 
