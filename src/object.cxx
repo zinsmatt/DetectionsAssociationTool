@@ -41,6 +41,15 @@ void Object::setObservation(int index, const Detection &det) {
   }
 }
 
+void Object::removeObservation(int index)
+{
+    if (index >= 0 && index < observations.size() && observations[index])
+    {
+        observations[index].reset(nullptr);
+        observations[index] = nullptr;
+    }
+}
+
 QString Object::getText() const
 {
   return QString::fromStdString("Object " + std::to_string(id));
@@ -48,7 +57,10 @@ QString Object::getText() const
 
 const Detection *Object::getObservation(int image_idx)
 {
-    return observations[image_idx].get();
+    if (observations[image_idx])
+        return observations[image_idx].get();
+    else
+        return nullptr;
 }
 
 Eigen::MatrixX3d Object::getObservationsMatrix() const

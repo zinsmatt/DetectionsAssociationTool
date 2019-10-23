@@ -22,8 +22,11 @@
 void CustomLabel::mousePressEvent( QMouseEvent* ev )
 {
     const QPoint p = ev->pos();
+    int mode = 0;
+    if (ev->button() == Qt::RightButton)
+        mode = 1;
     if (main_window)
-      main_window->click(p.x(), p.y());
+      main_window->click(p.x(), p.y(), mode);
 }
 
 CustomLabel::CustomLabel( QWidget * parent, Qt::WindowFlags f )

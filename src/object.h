@@ -34,6 +34,7 @@ public:
   Object(int i, int n);
 
   void setObservation(int index, const Detection& det);
+  void removeObservation(int index);
 
   QString getText() const;
 

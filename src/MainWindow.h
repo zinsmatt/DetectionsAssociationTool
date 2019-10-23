@@ -44,7 +44,8 @@ public:
 
   void update();
 
-  void click(int x, int y);
+  // mode is 0 for select, 1 for delete
+  void click(int x, int y, int mode);
 
   void closeEvent(QCloseEvent *event) override;
 

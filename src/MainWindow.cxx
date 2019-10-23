@@ -86,20 +86,29 @@ void MainWindow::update()
   ui->image_view->setScaledContents(false);
 }
 
-void MainWindow::click(int x, int y)
+void MainWindow::click(int x, int y, int mode)
 {
     if (ui->image_view->pixmap())
     {
-      int x_offset = static_cast<float>(ui->image_view->width() - ui->image_view->pixmap()->width()) / 2;
-      int y_offset = static_cast<float>(ui->image_view->height() - ui->image_view->pixmap()->height()) / 2;
-      if (cur_obj_index >= 0)
+      if (mode == 0)
       {
-        const auto* det = images[cur_image_index].findDetectionUnderPosition(x - x_offset, y - y_offset);
-        if (det)
-        {
-          objects[cur_obj_index].setObservation(cur_image_index, *det);
+          int x_offset = static_cast<float>(ui->image_view->width() - ui->image_view->pixmap()->width()) / 2;
+          int y_offset = static_cast<float>(ui->image_view->height() - ui->image_view->pixmap()->height()) / 2;
+          if (cur_obj_index >= 0)
+          {
+            const auto* det = images[cur_image_index].findDetectionUnderPosition(x - x_offset, y - y_offset);
+            if (det)
+            {
+              objects[cur_obj_index].setObservation(cur_image_index, *det);
+              update();
+            }
+          }
+      }
+      else if (mode == 1)
+      {
+          std::cout << "remove observation" << std::endl;
+          objects[cur_obj_index].removeObservation(cur_image_index);
           update();
-        }
       }
     }
 }
@@ -209,7 +218,6 @@ void MainWindow::openImagesDataset()
 
 void MainWindow::keyPressEvent(QKeyEvent *ev)
 {
-    std::cout << ev->key() << std::endl;
   if (images.size() > 0)
   {
     if (ev->key() == 16777236)  // next
@@ -307,7 +315,10 @@ bool MainWindow::save()
         {
             for (int j = 0; j < matrices.cols(); ++j)
             {
-                file << std::fixed << std::setprecision(9) << std::setfill(' ') << std::setw(20) <<  matrices(i, j) << " ";
+                file << std::fixed << std::setprecision(9) << std::setfill(' ') << std::setw(20) <<  matrices(i, j);
+                if (j < matrices.cols() - 1)
+                    file << " ";
+
             }
             file << "\n";
         }
