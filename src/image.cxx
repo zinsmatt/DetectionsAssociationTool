@@ -38,7 +38,8 @@ bool isPointInsideRotatedRect(const Eigen::Vector2d p,
 }
 
 
-Image::Image(fs::path path)
+Image::Image(fs::path path, int init_index)
+    : dataset_index(init_index)
 {
   name = path.stem().generic_string();
   fullpath = path.generic_string();
@@ -75,7 +76,6 @@ void Image::loadDetectionsFile(const std::string &filename)
 
 const Detection *Image::findDetectionUnderPosition(int x, int y)
 {
-  std::cout << "===============++> lickc  = " << x << " " << y << std::endl;
   std::vector<int> indices_inside;
   for (int i = 0; i < detections.size(); ++i)
   {
@@ -112,4 +112,9 @@ const Detection *Image::findDetectionUnderPosition(int x, int y)
                                                      std::min_element(sqdist_to_center.begin(),
                                                                       sqdist_to_center.end()))];
   return &detections[min_dist_index];
+}
+
+std::string Image::getText() const
+{
+    return name + "\t" + std::to_string(dataset_index);
 }

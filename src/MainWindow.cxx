@@ -19,7 +19,7 @@
 #include "ui_MainWindow.h"
 
 #include <iostream>
-#include <filesystem>
+#include <experimental/filesystem>
 
 #include <QDebug>
 #include <QComboBox>
@@ -31,7 +31,7 @@
 #include <unsupported/Eigen/EulerAngles>
 
 
-namespace fs = std::filesystem;
+namespace fs = std::experimental::filesystem;
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent), ui(new Ui::MainWindow)
@@ -51,6 +51,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::update()
 {
+  if (cur_image_index < 0)
+      return;
+
   const Detection* obs = nullptr;
   if (cur_obj_index >= 0)
     obs = objects[cur_obj_index].getObservation(cur_image_index);
@@ -65,7 +68,7 @@ void MainWindow::update()
   QImage image_qt= QImage((uchar*) dest.data, dest.cols, dest.rows, dest.step, QImage::Format_RGB888);
   ui->image_view->setPixmap(QPixmap::fromImage(image_qt));
   ui->image_view->show();
-  ui->image_label->setText(QString::fromStdString(images[cur_image_index].name + " (" + std::to_string(cur_image_index) + ")"));
+  ui->image_label->setText(QString::fromStdString(std::to_string(cur_image_index) + "\t" + images[cur_image_index].getText()));
 
   ui->image_view->setMainWindow(this);
   ui->image_label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -88,11 +91,12 @@ void MainWindow::click(int x, int y)
 void MainWindow::openImagesDataset()
 {
   QFileDialog dialog;
-  dialog.setDirectory("/home/matt/dev/MaskRCNN/maskrcnn-benchmark/output/detections");
+//  dialog.setDirectory("/home/matt/dev/MaskRCNN/maskrcnn-benchmark/output/detections");
+  dialog.setDirectory("/home/mzins/Dataset/rgbd_dataset_freiburg2_desk/MaskRCNN_detections");
   dialog.setFileMode(QFileDialog::Directory);
-  dialog.exec();
+  int ret = dialog.exec();
   auto folder = dialog.directory();
-  if (folder.exists() && folder.isReadable())
+  if (ret && folder.path().toStdString().size() > 0 && folder.exists() && folder.isReadable())
   {
     std::cout << "load images from " << folder.path().toStdString() << std::endl;
 
@@ -101,7 +105,6 @@ void MainWindow::openImagesDataset()
     std::string images_ext;
     for (const auto & entry : fs::directory_iterator(path))
     {
-      std::cout << entry.path().filename() << std::endl;
       auto name = entry.path().stem();
       auto ext = entry.path().extension();
       if (ext.generic_string() == ".png" || ext.generic_string() == ".jpg" || ext.generic_string() == ".jpeg")
@@ -127,10 +130,9 @@ void MainWindow::openImagesDataset()
     }
 
     // Ask to select a subset of images
-
     auto line = QInputDialog::getText(nullptr, "Select images to use", "Indices: ",
                                       QLineEdit::Normal, "");
-    std::cout << line.toStdString() << "\n";
+    std::cout << "line = " << line.toStdString() << "\n";
     auto lineStr = line.toStdString();
     for (auto& c  : lineStr)
     {
@@ -165,7 +167,7 @@ void MainWindow::openImagesDataset()
     {
       auto image_fullpath = fs::path(folder.path().toStdString()) / fs::path(images_filenames[idx] + images_ext);
       auto detection_fullpath = fs::path(folder.path().toStdString()) / fs::path(detections_filenames[idx] + ".txt");
-      Image image(image_fullpath);
+      Image image(image_fullpath, idx);
       image.loadDetectionsFile(detection_fullpath.generic_string());
       images.emplace_back(image);
     }

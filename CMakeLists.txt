@@ -38,7 +38,7 @@ set(CMAKE_AUTOUIC ON)
 find_package(OpenCV REQUIRED)
 
 # YAML-cpp
-find_package(yaml-cpp REQUIRED)
+#find_package(yaml-cpp REQUIRED)
 
 set(SRC_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -103,7 +103,7 @@ add_executable(BoundingBoxMe
 
 target_include_directories(BoundingBoxMe SYSTEM PRIVATE
     #${VTK_INCLUDE_DIRS}
-    ${YAML_CPP_INCLUDE_DIR}
+#    ${YAML_CPP_INCLUDE_DIR}
     ${SRC_DIRECTORY}/
     )
 target_link_libraries(BoundingBoxMe PRIVATE
@@ -111,7 +111,7 @@ target_link_libraries(BoundingBoxMe PRIVATE
   ${OpenCV_LIBS}
   #${VTK_LIBRARIES}
   Eigen3::Eigen
-  ${YAML_CPP_LIBRARIES}
+ # ${YAML_CPP_LIBRARIES}
   stdc++fs          # for std::filesystem
   )
 
