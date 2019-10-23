@@ -7,7 +7,9 @@
 #include <memory>
 #include <vector>
 
-#include <detection.h>
+#include <Eigen/Dense>
+
+#include "detection.h"
 
 class Object
 {
@@ -19,6 +21,8 @@ public:
   QString getText() const;
 
   const Detection* getObservation(int image_idx);
+
+  Eigen::MatrixX3d getObservationsMatrix() const;
 
 
 private:

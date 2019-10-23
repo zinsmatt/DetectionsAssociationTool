@@ -6,42 +6,13 @@
 
 #include <Eigen/Dense>
 
-bool isPointInsideRotatedRect(const Eigen::Vector2d p,
-                              const Eigen::Vector2d a,
-                              const Eigen::Vector2d b,
-                              const Eigen::Vector2d c,
-                              const Eigen::Vector2d d)
-{
-  std::cout << "points = \n";
-  std::cout << "a= " << a.transpose() << "\n";
-    std::cout << b.transpose() << "\n";
-      std::cout << c.transpose() << "\n";
-        std::cout << d.transpose() << "\n";
-          std::cout << "p= " << p.transpose() << "\n";
-  Eigen::Vector2d pa = a-p;
-  Eigen::Vector2d pb = b-p;
-  Eigen::Vector2d pc = c-p;
-  Eigen::Vector2d pd = d-p;
-  double det_ab = pa[0] * pb[1] - pa[1] * pb[0];
-  double det_bc = pb[0] * pc[1] - pb[1] * pc[0];
-  double det_cd = pc[0] * pd[1] - pc[1] * pd[0];
-  double det_da = pd[0] * pa[1] - pd[1] * pa[0];
-  std::cout << det_ab << " "
-               << det_bc << " "
-                  << det_cd << " "
-                     << det_da << std::endl;
-  if (det_ab > 0 && det_bc > 0 && det_cd > 0 && det_da > 0
-      || det_ab < 0 && det_bc < 0 && det_cd < 0 && det_da < 0)
-    return true;
-  else
-    return false;
-}
+#include "utils.h"
 
 
 Image::Image(fs::path path, int init_index)
     : dataset_index(init_index)
 {
-  name = path.stem().generic_string();
+  name = path.filename().generic_string();
   fullpath = path.generic_string();
   image = cv::imread(fullpath, cv::IMREAD_UNCHANGED);
 }
@@ -95,6 +66,7 @@ const Detection *Image::findDetectionUnderPosition(int x, int y)
     Eigen::Vector2d p(x - det.x, y - det.y);
     if (isPointInsideRotatedRect(p, a, b, c, d))
     {
+        std::cout << "Point is inside "<< std::endl;
       indices_inside.push_back(i);
     }
   }

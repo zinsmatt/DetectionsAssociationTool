@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
   statusBar()->showMessage("Auto save disabled");
 
   QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImagesDataset()));
+  QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(save()));
   QObject::connect(ui->add_object_button, SIGNAL(clicked(bool)), this, SLOT(addNewObject()));
   QObject::connect(ui->objects_list, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(selectObject(QListWidgetItem*)));
 }
@@ -209,6 +210,47 @@ void MainWindow::selectObject(QListWidgetItem *item)
   auto name = item->text().toStdString();
   auto num = std::stoi(name.substr(7));
   cur_obj_index = num;
-  std::cout << "selected object " << num << std::endl;
+  update();
 }
 
+void MainWindow::save()
+{
+    auto outputFilename = QFileDialog::getSaveFileName(this, tr("Save the detections associations"), "./", tr("Text File (*.txt)")).toStdString();
+    if (outputFilename.size() > 0)
+    {
+        // force the extension
+        fs::path filename(outputFilename);
+        filename.replace_extension("txt");
+        outputFilename = filename.generic_string();
+
+        filename.replace_extension("used_images.txt");
+        auto outputFilename2 = filename.generic_string();
+
+
+        Eigen::MatrixXd matrices(images.size() * 3, 0);
+        for (const auto& obj : objects)
+        {
+            Eigen::MatrixX3d ellipsoids_matrices = obj.getObservationsMatrix();
+            matrices.resize(Eigen::NoChange, matrices.cols() + 3);
+            matrices.rightCols(3) = ellipsoids_matrices;
+            std::cout << "matrices.size = " << matrices.rows() << " " << matrices.cols() << std::endl;
+        }
+
+        std::ofstream file(outputFilename);
+        for (int i = 0; i < matrices.rows(); ++i)
+        {
+            for (int j = 0; j < matrices.cols(); ++j)
+            {
+                file << matrices(i, j) << " ";
+            }
+            file << "\n";
+        }
+
+        file.close();
+
+        std::ofstream file2(outputFilename2);
+        for (const auto& img : images)
+            file2 << img.name << "\n";
+        file2.close();
+    }
+}

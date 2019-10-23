@@ -51,6 +51,7 @@ public slots:
   void keyPressEvent(QKeyEvent *ev) override;
   void addNewObject();
   void selectObject(QListWidgetItem* item);
+  void save();
 
 
 private:

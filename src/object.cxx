@@ -1,5 +1,6 @@
 #include "object.h"
 
+#include "utils.h"
 
 Object::Object(int i, int n)
   : id(i)
@@ -30,5 +31,15 @@ QString Object::getText() const
 
 const Detection *Object::getObservation(int image_idx)
 {
-  return observations[image_idx].get();
+    return observations[image_idx].get();
+}
+
+Eigen::MatrixX3d Object::getObservationsMatrix() const
+{
+    Eigen::MatrixX3d mat(observations.size() * 3, 3);
+    for (int i = 0; i < observations.size(); ++i)
+    {
+        mat.block<3, 3>(i*3, 0) = convertEllipseToDualMatrix(observations[i].get());
+    }
+    return mat;
 }
