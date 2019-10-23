@@ -46,13 +46,14 @@ public:
 
   void click(int x, int y);
 
+  void closeEvent(QCloseEvent *event) override;
 
 public slots:
   void openImagesDataset();
   void keyPressEvent(QKeyEvent *ev) override;
   void addNewObject();
   void selectObject();
-  void save();
+  bool save();
   void load();
   void clear();
 

@@ -72,21 +72,26 @@ void MainWindow::update()
   QImage image_qt= QImage((uchar*) dest.data, dest.cols, dest.rows, dest.step, QImage::Format_RGB888);
   ui->image_view->setPixmap(QPixmap::fromImage(image_qt));
   ui->image_view->show();
-  ui->image_label->setText(QString::fromStdString(std::to_string(cur_image_index) + "\t" + images[cur_image_index].getText()));
+
+  QFont font( "Verdana", 20, QFont::Bold);
+  ui->image_label->setFont(font);
+  ui->image_label->setText(QString::fromStdString(std::to_string(cur_image_index)));
+
+  QFont font2( "Verdana", 10);
+  ui->image_caption->setFont(font2);
+  ui->image_caption->setText(QString::fromStdString(images[cur_image_index].getText()));
 
   ui->image_view->setMainWindow(this);
-  ui->image_label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-  ui->image_label->setScaledContents(false);
+  ui->image_view->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
+  ui->image_view->setScaledContents(false);
 }
 
 void MainWindow::click(int x, int y)
 {
-    std::cout << "lickec" << std::endl;
     if (ui->image_view->pixmap())
     {
       int x_offset = static_cast<float>(ui->image_view->width() - ui->image_view->pixmap()->width()) / 2;
       int y_offset = static_cast<float>(ui->image_view->height() - ui->image_view->pixmap()->height()) / 2;
-      std::cout << ")=====> fofsets " << x_offset << " " << y_offset << std::endl;
       if (cur_obj_index >= 0)
       {
         const auto* det = images[cur_image_index].findDetectionUnderPosition(x - x_offset, y - y_offset);
@@ -155,7 +160,6 @@ void MainWindow::openImagesDataset()
     // Ask to select a subset of images
     auto line = QInputDialog::getText(nullptr, "Select images to use", "Indices: ",
                                       QLineEdit::Normal, "");
-    std::cout << "line = " << line.toStdString() << "\n";
     auto lineStr = line.toStdString();
     for (auto& c  : lineStr)
     {
@@ -191,7 +195,7 @@ void MainWindow::openImagesDataset()
       auto image_fullpath = fs::path(folder.path().toStdString()) / fs::path(images_filenames[idx] + images_ext);
       auto detection_fullpath = fs::path(folder.path().toStdString()) / fs::path(detections_filenames[idx] + ".txt");
       Image image(image_fullpath, idx);
-      image.loadDetectionsFile(detection_fullpath.generic_string());
+      image.loadImageDetections(detection_fullpath.generic_string());
       images.emplace_back(image);
     }
 
@@ -205,7 +209,7 @@ void MainWindow::openImagesDataset()
 
 void MainWindow::keyPressEvent(QKeyEvent *ev)
 {
-    std::cout << "key = " << ev->key() << std::endl;
+    std::cout << ev->key() << std::endl;
   if (images.size() > 0)
   {
     if (ev->key() == 16777236)  // next
@@ -218,7 +222,7 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
       if (cur_image_index < 0)
         cur_image_index += images.size();
     }
-    else if (ev->key() == 16777223)
+    else if (ev->key() == 16777223)         // "Suppr" => remove the currently selected object
     {
         if (cur_obj_index >= 0)
         {
@@ -234,8 +238,12 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
 
             cur_obj_index = -1;
             ui->objects_list->setCurrentRow(-1);
-            update();
         }
+    }
+    else if (ev->key() == 16777216)         // "Esc" => unselect objects
+    {
+        cur_obj_index = -1;
+        ui->objects_list->setCurrentRow(-1);
     }
     update();
   }
@@ -269,7 +277,7 @@ void MainWindow::selectObject()
   }
 }
 
-void MainWindow::save()
+bool MainWindow::save()
 {
     auto outputFilename = QFileDialog::getSaveFileName(this, tr("Save the detections associations"), "./", tr("Text File (*.txt)")).toStdString();
     if (outputFilename.size() > 0)
@@ -291,13 +299,7 @@ void MainWindow::save()
         {
             Eigen::MatrixX3d ellipsoids_matrices = obj.getObservationsMatrix();
             matrices.conservativeResize(Eigen::NoChange, matrices.cols() + 3);
-            std::cout << "*-------------------------------------------------------------------*\n";
-            std::cout << "matrices = \n" << matrices << std::endl;
-            std::cout << "*-------------------------------------------------------------------*\n";
-            std::cout << "ellipsoids_matrices = \n" << ellipsoids_matrices << std::endl;
             matrices.rightCols(3) = ellipsoids_matrices;
-            std::cout << "*-------------------------------------------------------------------*\n";
-            std::cout << "matrices = \n" << matrices << std::endl;
         }
 
         std::ofstream file(outputFilename);
@@ -327,7 +329,9 @@ void MainWindow::save()
             file3 << obj.serialize();
         }
         file3.close();
+        return true;
     }
+    return false;
 }
 
 void MainWindow::load()
@@ -335,7 +339,6 @@ void MainWindow::load()
     auto datasetFilename = QFileDialog::getOpenFileName(this, tr("Open the detections associations"), "./", tr("Associations File (*.associations)")).toStdString();
     if (datasetFilename.size() > 0)
     {
-
         // CLEAR
         clear();
 
@@ -350,7 +353,7 @@ void MainWindow::load()
             Image image(filename, idx);
             fs::path detections_fullpath(filename);
             detections_fullpath.replace_extension(".txt");
-            image.loadDetectionsFile(detections_fullpath.generic_string());
+            image.loadImageDetections(detections_fullpath.generic_string());
             images.emplace_back(image);
         }
 
@@ -383,4 +386,34 @@ void MainWindow::load()
         cur_image_index = 0;
         update();
     }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+  if (objects.size() > 0)
+  {
+    QMessageBox::StandardButton ret = QMessageBox::warning(this, "Warning",
+                 tr("Do you want to save your work ?\n"),
+                 QMessageBox::Discard | QMessageBox::Save| QMessageBox::Cancel,
+                 QMessageBox::Discard);
+    if (ret == QMessageBox::Save)
+    {
+        if (save())
+        {   // if saved successfully, we can quit
+            event->accept();
+        }
+        else
+        {   // if no saving, ignore the action
+            event->ignore();
+        }
+    }
+    else if (ret == QMessageBox::Cancel)
+    {
+      event->ignore();
+    }
+    else
+    {
+      event->accept();
+    }
+  }
 }

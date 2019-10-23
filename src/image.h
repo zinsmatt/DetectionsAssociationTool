@@ -20,8 +20,10 @@ struct Image
   std::vector<Detection> detections;
   int dataset_index;
 
-  void loadDetectionsFile(const std::string& filename);
+  void loadImageDetections(const std::string& filename);
+
   const Detection* findDetectionUnderPosition(int x, int y);
+
   std::string getText() const;
 
 };

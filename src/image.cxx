@@ -17,13 +17,12 @@ Image::Image(fs::path path, int init_index)
   image = cv::imread(fullpath, cv::IMREAD_UNCHANGED);
 }
 
-void Image::loadDetectionsFile(const std::string &filename)
+void Image::loadImageDetections(const std::string &filename)
 {
   std::ifstream file(filename);
   std::string line;
   while (std::getline(file, line))
   {
-    std::cout << "line = " << line << std::endl;
     if (line.size() > 0 && line[0] != '#')
     {
       std::stringstream ss;
@@ -40,8 +39,6 @@ void Image::loadDetectionsFile(const std::string &filename)
       detections.emplace_back(det);
     }
   }
-
-
   file.close();
 }
 
@@ -66,7 +63,6 @@ const Detection *Image::findDetectionUnderPosition(int x, int y)
     Eigen::Vector2d p(x - det.x, y - det.y);
     if (isPointInsideRotatedRect(p, a, b, c, d))
     {
-        std::cout << "Point is inside "<< std::endl;
       indices_inside.push_back(i);
     }
   }
@@ -88,5 +84,5 @@ const Detection *Image::findDetectionUnderPosition(int x, int y)
 
 std::string Image::getText() const
 {
-    return name + "\t" + std::to_string(dataset_index);
+    return name + " (" + std::to_string(dataset_index) + ")";
 }
