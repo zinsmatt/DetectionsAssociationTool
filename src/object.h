@@ -24,6 +24,10 @@ public:
 
   Eigen::MatrixX3d getObservationsMatrix() const;
 
+  std::string serialize() const;
+
+  void setId(int i) { id = i; }
+  int getId() const { return id; }
 
 private:
   int id;

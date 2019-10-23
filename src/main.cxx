@@ -18,16 +18,11 @@
 #include "MainWindow.h"
 #include <QApplication>
 
-// Global pointer to the mainwindow (used for logging)
-MainWindow* mainWindowPtr = nullptr;
-
 
 int main(int argc, char *argv[])
 {
-  mainWindowPtr = nullptr;
   QApplication a(argc, argv);
   MainWindow w;
-  mainWindowPtr = &w;
 
   w.show();
   a.exec();

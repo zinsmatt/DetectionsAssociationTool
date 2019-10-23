@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Bounding Box Me!</string>
+   <string>Associate Detections</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -57,7 +57,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -65,8 +65,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
-    <addaction name="actionOpenBBox"/>
-    <addaction name="actionOpenCameraFrames"/>
+    <addaction name="actionOpenDetections"/>
     <addaction name="actionSave"/>
     <addaction name="actionRestart"/>
     <addaction name="actionQuit"/>
@@ -83,9 +82,8 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionOpenDetections"/>
    <addaction name="actionOpen"/>
-   <addaction name="actionOpenBBox"/>
-   <addaction name="actionOpenCameraFrames"/>
    <addaction name="actionSave"/>
    <addaction name="actionRestart"/>
   </widget>
@@ -96,7 +94,7 @@
   </widget>
   <widget class="QDockWidget" name="dockWidget_Camera">
    <property name="windowTitle">
-    <string>Camera</string>
+    <string>Objects</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -122,10 +120,10 @@
      <normaloff>:/icon/folder-open-solid.svg</normaloff>:/icon/folder-open-solid.svg</iconset>
    </property>
    <property name="text">
-    <string>Open Lidar</string>
+    <string>Open Associations Dataset</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Lidar Point Clouds dataset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Open an associations dataset</string>
    </property>
   </action>
   <action name="actionSave">
@@ -134,7 +132,7 @@
      <normaloff>:/icon/save-solid.svg</normaloff>:/icon/save-solid.svg</iconset>
    </property>
    <property name="text">
-    <string>Save BBox</string>
+    <string>Save</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save Bounding Box Dataset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -157,28 +155,16 @@
     <string>Quit</string>
    </property>
   </action>
-  <action name="actionOpenBBox">
-   <property name="icon">
-    <iconset resource="../assets/resources.qrc">
-     <normaloff>:/icon/box-open-solid.svg</normaloff>:/icon/box-open-solid.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Open BBox</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open Bounding Box Dataset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </action>
-  <action name="actionOpenCameraFrames">
+  <action name="actionOpenDetections">
    <property name="icon">
     <iconset resource="../assets/resources.qrc">
      <normaloff>:/icon/image-open.svg</normaloff>:/icon/image-open.svg</iconset>
    </property>
    <property name="text">
-    <string>OpenCameraFrames</string>
+    <string>Open Detections</string>
    </property>
    <property name="toolTip">
-    <string>Open Camera frames</string>
+    <string>Open images and detections files</string>
    </property>
   </action>
   <zorder>dockWidget_Camera</zorder>

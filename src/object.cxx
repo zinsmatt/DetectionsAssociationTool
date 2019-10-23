@@ -43,3 +43,21 @@ Eigen::MatrixX3d Object::getObservationsMatrix() const
     }
     return mat;
 }
+
+std::string Object::serialize() const
+{
+    std::stringstream ss;
+    ss << id << "\n";
+    for (int i = 0; i < observations.size(); ++i)
+    {
+        if (observations[i])
+        {
+            ss << observations[i]->serialize() << "\n";
+        }
+        else
+        {
+            ss << "-1 -1 -1 -1 -1 -1\n";
+        }
+    }
+    return ss.str();
+}

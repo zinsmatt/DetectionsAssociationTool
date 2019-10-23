@@ -43,7 +43,6 @@ Eigen::Matrix3d convertEllipseToDualMatrix(const Detection *det)
              0.0, 0.0, 1.0;
         Eigen::Matrix3d T_inv = T.inverse();
         mat = T_inv.transpose() * R * mat * R.transpose() * T_inv;
-        std::cout << "Primal matrix = \n"  << mat << std::endl;
         Eigen::Matrix3d dual_mat = mat.inverse();
         dual_mat /= dual_mat(2, 2);
         return dual_mat;

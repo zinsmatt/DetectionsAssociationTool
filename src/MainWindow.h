@@ -46,12 +46,15 @@ public:
 
   void click(int x, int y);
 
+
 public slots:
   void openImagesDataset();
   void keyPressEvent(QKeyEvent *ev) override;
   void addNewObject();
-  void selectObject(QListWidgetItem* item);
+  void selectObject();
   void save();
+  void load();
+  void clear();
 
 
 private:
