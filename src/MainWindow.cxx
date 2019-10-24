@@ -246,6 +246,7 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
 
             cur_obj_index = -1;
             ui->objects_list->setCurrentRow(-1);
+            objectCounter--;
         }
     }
     else if (ev->key() == 16777216)         // "Esc" => unselect objects
