@@ -46,12 +46,14 @@ void Image::loadImageDetections(const std::string &filename)
       ss.str(line);
 
       Detection det;
-      ss >> det.x;
-      ss >> det.y;
       ss >> det.w;
       ss >> det.h;
+      ss >> det.x;
+      ss >> det.y;
       ss >> det.a;
-      ss >> det.classe;
+      det.w *= 2;
+      det.h *= 2;
+      //ss >> det.classe;
 
       detections.emplace_back(det);
     }
@@ -70,7 +72,7 @@ const Detection *Image::findDetectionUnderPosition(int x, int y)
     Eigen::Vector2d c( det.w / 2,  det.h / 2);
     Eigen::Vector2d d(-det.w / 2,  det.h / 2);
     Eigen::Matrix2d rot;
-    double angle = 3.1416 * det.a / 180;
+    double angle = det.a;
     rot << std::cos(angle), -std::sin(angle),
            std::sin(angle), std::cos(angle);
     a = rot * a;

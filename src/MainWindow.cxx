@@ -55,6 +55,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::update()
 {
+
+
   if (cur_image_index < 0)
       return;
 
@@ -66,9 +68,10 @@ void MainWindow::update()
   cv::cvtColor(images[cur_image_index].image, dest, cv::COLOR_BGR2RGB);
   if (obs)
   {
-    cv::ellipse(dest, cv::RotatedRect(cv::Point2i(obs->x, obs->y), cv::Size2i(obs->w, obs->h), obs->a),
+    cv::ellipse(dest, cv::RotatedRect(cv::Point2i(obs->x, obs->y), cv::Size2i(obs->w, obs->h), 180.0 * obs->a / 3.14156),
                 cv::Scalar(0, 255, 0), 3);
   }
+
   QImage image_qt= QImage((uchar*) dest.data, dest.cols, dest.rows, dest.step, QImage::Format_RGB888);
   ui->image_view->setPixmap(QPixmap::fromImage(image_qt));
   ui->image_view->show();
@@ -99,6 +102,7 @@ void MainWindow::click(int x, int y, int mode)
             const auto* det = images[cur_image_index].findDetectionUnderPosition(x - x_offset, y - y_offset);
             if (det)
             {
+              std::cout << "click on object" << std::endl;
               objects[cur_obj_index].setObservation(cur_image_index, *det);
               update();
             }
@@ -127,6 +131,12 @@ void MainWindow::clear()
 
 void MainWindow::openImagesDataset()
 {
+  // Open a folder containing the images with the detected contours and the detections files containing the ellipses
+  // to be compatible with detectron2 outputs, the folder has to be:
+  // folder/
+  //        xxxx.ellipses
+  //        xxxx.png
+
   QFileDialog dialog;
 //  dialog.setDirectory("/home/matt/dev/MaskRCNN/maskrcnn-benchmark/output/detections");
   dialog.setDirectory("/home/mzins/Dataset/rgbd_dataset_freiburg2_desk/MaskRCNN_detections");
@@ -149,7 +159,7 @@ void MainWindow::openImagesDataset()
         images_filenames.push_back(name.generic_string());
         images_ext = ext.generic_string();
       }
-      else if(ext.generic_string() == ".txt")
+      else if(ext.generic_string() == ".ellipses")
       {
         detections_filenames.push_back(name.generic_string());
       }
@@ -202,7 +212,7 @@ void MainWindow::openImagesDataset()
     for (auto idx : indices)
     {
       auto image_fullpath = fs::path(folder.path().toStdString()) / fs::path(images_filenames[idx] + images_ext);
-      auto detection_fullpath = fs::path(folder.path().toStdString()) / fs::path(detections_filenames[idx] + ".txt");
+      auto detection_fullpath = fs::path(folder.path().toStdString()) / fs::path(detections_filenames[idx] + ".ellipses");
       Image image(image_fullpath, idx);
       image.loadImageDetections(detection_fullpath.generic_string());
       images.emplace_back(image);
@@ -288,6 +298,13 @@ void MainWindow::selectObject()
 
 bool MainWindow::save()
 {
+    /// It writes three files: .associations, .txt, .used_images.txt
+    ///     .txt contains a large matrix where each 3x3 matrix is an ellipse (dual form). The columns represent the different objects
+    ///     .associations contains first the number and the list of all images and their index in the dataset. Then, the number of objects
+    ///     and for each object their id and their observation as an ellipse in each image (-1 -1 -1 -1 -1 if no observation in the image)
+    ///     .used_images.txt just contains the name of each image
+    ///     .ellipses_associations
+    ///
     auto outputFilename = QFileDialog::getSaveFileName(this, tr("Save the detections associations"), "./", tr("Text File (*.txt)")).toStdString();
     if (outputFilename.size() > 0)
     {
@@ -306,9 +323,9 @@ bool MainWindow::save()
         Eigen::MatrixXd matrices(images.size() * 3, 0);
         for (const auto& obj : objects)
         {
-            Eigen::MatrixX3d ellipsoids_matrices = obj.getObservationsMatrix();
+            Eigen::MatrixX3d ellipses_matrices = obj.getObservationsMatrix();
             matrices.conservativeResize(Eigen::NoChange, matrices.cols() + 3);
-            matrices.rightCols(3) = ellipsoids_matrices;
+            matrices.rightCols(3) = ellipses_matrices;
         }
 
         std::ofstream file(outputFilename);
@@ -323,8 +340,8 @@ bool MainWindow::save()
             }
             file << "\n";
         }
-
         file.close();
+
 
         std::ofstream file2(outputFilename2);
         for (const auto& img : images)
@@ -341,6 +358,8 @@ bool MainWindow::save()
             file3 << obj.serialize();
         }
         file3.close();
+
+
         return true;
     }
     return false;

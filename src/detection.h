@@ -24,7 +24,7 @@ struct Detection
 {
   float x, y;
   float w, h;
-  float a;
+  float a;  // radians
   int classe;
 
   std::string serialize() const;

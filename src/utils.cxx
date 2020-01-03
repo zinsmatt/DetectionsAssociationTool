@@ -34,8 +34,8 @@ bool isPointInsideRotatedRect(const Eigen::Vector2d p,
   double det_cd = pc[0] * pd[1] - pc[1] * pd[0];
   double det_da = pd[0] * pa[1] - pd[1] * pa[0];
 
-  if (det_ab > 0 && det_bc > 0 && det_cd > 0 && det_da > 0
-      || det_ab < 0 && det_bc < 0 && det_cd < 0 && det_da < 0)
+  if ((det_ab > 0 && det_bc > 0 && det_cd > 0 && det_da > 0)
+      || (det_ab < 0 && det_bc < 0 && det_cd < 0 && det_da < 0))
     return true;
   else
     return false;
@@ -49,10 +49,9 @@ Eigen::Matrix3d convertEllipseToDualMatrix(const Detection *det)
         mat(0, 0) = 1.0 / std::pow(det->w / 2, 2);
         mat(1, 1) = 1.0 / std::pow(det->h / 2, 2);
         mat(2, 2) = -1.0;
-        double a = det->a * 3.1416 / 180.0;
         Eigen::Matrix3d R;
-        R << std::cos(a), -std::sin(a), 0.0,
-             std::sin(a),  std::cos(a), 0.0,
+        R << std::cos(det->a), -std::sin(det->a), 0.0,
+             std::sin(det->a),  std::cos(det->a), 0.0,
              0.0, 0.0, 1.0;
         Eigen::Matrix3d T;
         T << 1.0, 0.0, det->x,
@@ -61,7 +60,7 @@ Eigen::Matrix3d convertEllipseToDualMatrix(const Detection *det)
         Eigen::Matrix3d T_inv = T.inverse();
         mat = T_inv.transpose() * R * mat * R.transpose() * T_inv;
         Eigen::Matrix3d dual_mat = mat.inverse();
-        dual_mat /= dual_mat(2, 2);
+        //dual_mat /= dual_mat(2, 2);
         return dual_mat;
     }
     return mat;

@@ -22,6 +22,7 @@
 std::string Detection::serialize() const
 {
     std::stringstream ss;
-    ss << x << " " << y << " " << w << " " << h << " " << a << " " << classe;
+//    ss << x << " " << y << " " << w << " " << h << " " << a << " " << classe;
+    ss << w/2 << " " << h/2 << " " << x << " " << y << " " << a << " " << classe;
     return ss.str();
 }
