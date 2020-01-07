@@ -37,7 +37,7 @@ struct Image
   std::vector<Detection> detections;
   int dataset_index;
 
-  void loadImageDetections(const std::string& filename);
+  void loadImageDetections(const std::string& filename, const std::string &filename_classes="");
 
   const Detection* findDetectionUnderPosition(int x, int y);
 

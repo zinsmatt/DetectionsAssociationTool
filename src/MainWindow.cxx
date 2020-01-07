@@ -31,6 +31,7 @@
 #include <QListWidget>
 #include <unsupported/Eigen/EulerAngles>
 
+#include <yaml-cpp/yaml.h>
 
 namespace fs = std::experimental::filesystem;
 
@@ -45,7 +46,6 @@ MainWindow::MainWindow(QWidget *parent) :
   QObject::connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(clear()));
   QObject::connect(ui->add_object_button, SIGNAL(clicked(bool)), this, SLOT(addNewObject()));
   QObject::connect(ui->objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectObject()));
-
 }
 
 MainWindow::~MainWindow()
@@ -102,8 +102,7 @@ void MainWindow::click(int x, int y, int mode)
             const auto* det = images[cur_image_index].findDetectionUnderPosition(x - x_offset, y - y_offset);
             if (det)
             {
-              std::cout << "click on object" << std::endl;
-              objects[cur_obj_index].setObservation(cur_image_index, *det);
+              objects[cur_obj_index].setObservation(cur_image_index, det);
               update();
             }
           }
@@ -131,11 +130,9 @@ void MainWindow::clear()
 
 void MainWindow::openImagesDataset()
 {
-  // Open a folder containing the images with the detected contours and the detections files containing the ellipses
-  // to be compatible with detectron2 outputs, the folder has to be:
-  // folder/
-  //        xxxx.ellipses
-  //        xxxx.png
+    /// This function opens a detection dataset. This should at least contain:
+    ///     *.ellipses => used to display the ellipse when the user click on a detection
+    ///     images/ *.png => the images with the detections that are displayed
 
   QFileDialog dialog;
 //  dialog.setDirectory("/home/matt/dev/MaskRCNN/maskrcnn-benchmark/output/detections");
@@ -147,10 +144,11 @@ void MainWindow::openImagesDataset()
   {
     clear();
 
-    auto path = folder.path().toStdString();
-    std::vector<std::string> images_filenames, detections_filenames;
+    fs::path data_path(folder.path().toStdString());
+    fs::path images_path = data_path / "images";
+    std::vector<std::string> images_filenames, detections_filenames, classes_filenames;
     std::string images_ext;
-    for (const auto & entry : fs::directory_iterator(path))
+    for (const auto & entry : fs::directory_iterator(images_path))
     {
       auto name = entry.path().stem();
       auto ext = entry.path().extension();
@@ -159,21 +157,29 @@ void MainWindow::openImagesDataset()
         images_filenames.push_back(name.generic_string());
         images_ext = ext.generic_string();
       }
-      else if(ext.generic_string() == ".ellipses")
+    }
+    for (const auto & entry : fs::directory_iterator(data_path))
+    {
+      auto name = entry.path().stem();
+      auto ext = entry.path().extension();
+      if(ext.generic_string() == ".ellipses")
       {
         detections_filenames.push_back(name.generic_string());
       }
+      else if (ext.generic_string() == ".classes")
+      {
+          classes_filenames.push_back(name.generic_string());
+      }
     }
+
     std::sort(detections_filenames.begin(), detections_filenames.end());
     std::sort(images_filenames.begin(), images_filenames.end());
+    std::sort(classes_filenames.begin(), classes_filenames.end());
 
-    for (int i = 0; i < detections_filenames.size(); ++i)
+    if (detections_filenames != images_filenames || (classes_filenames.size() > 0 && detections_filenames != classes_filenames))
     {
-      if (detections_filenames[i] != images_filenames[i])
-      {
-        std::cerr << "Warning: some images / detections do not match.";
-        return;
-      }
+      std::cerr << "Warning: some images / detections do not match.";
+      return;
     }
 
     // Ask to select a subset of images
@@ -211,10 +217,14 @@ void MainWindow::openImagesDataset()
     // Load the images and detections
     for (auto idx : indices)
     {
-      auto image_fullpath = fs::path(folder.path().toStdString()) / fs::path(images_filenames[idx] + images_ext);
-      auto detection_fullpath = fs::path(folder.path().toStdString()) / fs::path(detections_filenames[idx] + ".ellipses");
+      auto image_fullpath = images_path / fs::path(images_filenames[idx] + images_ext);
+      auto detection_fullpath = data_path / fs::path(images_filenames[idx] + ".ellipses");
+      auto classe_fullpath = data_path / fs::path(images_filenames[idx] + ".classes");
       Image image(image_fullpath, idx);
-      image.loadImageDetections(detection_fullpath.generic_string());
+      if (classes_filenames.size() > 0)
+          image.loadImageDetections(detection_fullpath.generic_string(), classe_fullpath.generic_string());
+      else
+          image.loadImageDetections(detection_fullpath.generic_string());
       images.emplace_back(image);
     }
 
@@ -305,60 +315,44 @@ bool MainWindow::save()
     ///     .used_images.txt just contains the name of each image
     ///     .ellipses_associations
     ///
-    auto outputFilename = QFileDialog::getSaveFileName(this, tr("Save the detections associations"), "./", tr("Text File (*.txt)")).toStdString();
+    auto outputFilename = QFileDialog::getSaveFileName(this, tr("Save the detections associations"), "./", tr("YAML File (*.yaml, *.yml)")).toStdString();
     if (outputFilename.size() > 0)
     {
-        // force the extension
-        fs::path filename(outputFilename);
-        filename.replace_extension("txt");
-        outputFilename = filename.generic_string();
-
-        filename.replace_extension(".associations");
-        auto outputFilename3 = filename.generic_string();
-
-        filename.replace_extension("used_images.txt");
-        auto outputFilename2 = filename.generic_string();
-
-
-        Eigen::MatrixXd matrices(images.size() * 3, 0);
-        for (const auto& obj : objects)
+        YAML::Node data_node;
+        YAML::Node images_node;
+        fs::path images_folder = fs::path(images.front().fullpath).parent_path();
+        images_node["folder"] = images_folder.generic_string();
+        for (const auto& im : images)
         {
-            Eigen::MatrixX3d ellipses_matrices = obj.getObservationsMatrix();
-            matrices.conservativeResize(Eigen::NoChange, matrices.cols() + 3);
-            matrices.rightCols(3) = ellipses_matrices;
+            images_node["names"].push_back(im.name);
+            images_node["ids"].push_back(im.dataset_index);
         }
 
-        std::ofstream file(outputFilename);
-        for (int i = 0; i < matrices.rows(); ++i)
+        data_node["images"] = images_node;
+        data_node["detections_folder"] =images_folder.parent_path().generic_string();
+
+        for (const auto& obj : objects)
         {
-            for (int j = 0; j < matrices.cols(); ++j)
+            YAML::Node object_node;
+            for (int i = 0; i < images.size(); ++i)
             {
-                file << std::fixed << std::setprecision(9) << std::setfill(' ') << std::setw(20) <<  matrices(i, j);
-                if (j < matrices.cols() - 1)
-                    file << " ";
-
+                const auto* obs = obj.getObservation(i);
+                if (obs)
+                {
+                    std::vector<double> ellipse = {obs->w / 2, obs->h / 2, obs->x, obs->y, obs->a};
+    //                object_node["ellipses"].push_back(ellipse);
+                    object_node["dataset_img_ids"].push_back(images[i].dataset_index);
+                    object_node["short_img_ids"].push_back(i);
+                    object_node["obs_ids"].push_back(obs->in_image_index);
+    //                object_node["classes"].push_back(obs->classe);
+    //                object_node["classes_names"].push_back(obs->classe_name);
+                }
             }
-            file << "\n";
+            data_node["objects"].push_back(object_node);
         }
-        file.close();
-
-
-        std::ofstream file2(outputFilename2);
-        for (const auto& img : images)
-            file2 << img.name << "\n";
-        file2.close();
-
-        std::ofstream file3(outputFilename3);
-        file3 << images.size() << "\n";
-        for (const auto& img : images)
-            file3 << img.fullpath << " " << img.dataset_index << "\n";
-        file3 << objects.size() << "\n";
-        for (const auto& obj : objects)
-        {
-            file3 << obj.serialize();
-        }
-        file3.close();
-
+        std::ofstream fileo("test.yaml");
+        fileo << data_node;
+        fileo.close();
 
         return true;
     }
@@ -367,54 +361,61 @@ bool MainWindow::save()
 
 void MainWindow::load()
 {
-    auto datasetFilename = QFileDialog::getOpenFileName(this, tr("Open the detections associations"), "./", tr("Associations File (*.associations)")).toStdString();
+    /// this functions reload the necessary data (images + detections) to be able to continue editing an association file
+    ///
+
+    auto datasetFilename = QFileDialog::getOpenFileName(this, tr("Open the detections associations"), "./", tr("YAML File (*.yaml, *.yml)")).toStdString();
     if (datasetFilename.size() > 0)
     {
         // CLEAR
         clear();
 
-        std::ifstream file(datasetFilename);
-        int n_images;
-        file >> n_images;
+
+        auto data = YAML::LoadFile("/home/mzins/dev/DetectionsAssociationTool/build/test.yaml");
+        fs::path folder = data["images"]["folder"].as<std::string>();
+        auto const& names = data["images"]["names"].as<std::vector<std::string>>();
+        auto const& ids = data["images"]["ids"].as<std::vector<int>>();
+        const int n_images = names.size();
         for (int i = 0; i < n_images; ++i)
         {
-            std::string filename;
-            int idx;
-            file >> filename >> idx;
-            Image image(filename, idx);
-            fs::path detections_fullpath(filename);
-            detections_fullpath.replace_extension(".txt");
-            image.loadImageDetections(detections_fullpath.generic_string());
+            fs::path full_path = folder / fs::path(names[i]);
+            Image image(full_path.generic_string() , ids[i]);
+            fs::path detections_path = full_path;
+            detections_path.replace_extension(".ellipses");
+            fs::path classes_path = full_path;
+            classes_path.replace_extension(".classes");
+            full_path.replace_extension(".classes");
+            image.loadImageDetections(detections_path.generic_string(), classes_path.generic_string());
             images.emplace_back(image);
         }
 
-        int n_objects;
-        file >> n_objects;
+        auto const& objects_node = data["objects"];
+        const int  n_objects = objects_node.size();
         for (int i = 0; i < n_objects; ++i)
         {
-            int id;
-            file >> id;
+            int id = objects.size();
             Object obj(id, n_images);
-            for (int j = 0; j < n_images; ++j)
+
+            auto const& object_node = objects_node[i];
+//            auto const& ellipses = object_node["ellipses"].as<std::vector<std::vector<double>>>();
+//            auto classes = object_node["classes"].as<std::vector<int>>();
+//            auto classes_names = object_node["classes_names"].as<std::vector<std::string>>();
+            auto img_ids = object_node["dataset_img_ids"].as<std::vector<int>>();
+            auto short_img_ids = object_node["short_img_ids"].as<std::vector<int>>();
+            auto obs_ids = object_node["obs_ids"].as<std::vector<int>>();
+
+            for (int j = 0; j < obs_ids.size(); ++j)
             {
-                float x, y, w, h, a;
-                int classe;
-                file >> x >> y >> w >> h >> a >> classe;
-                if (x > 0 && y > 0)
-                {
-                    Detection det({x, y, w, h, a, classe});
-                    obj.setObservation(j, det);
-                }
+                obj.setObservation(short_img_ids[j], &(images[short_img_ids[j]].detections[obs_ids[j]]));
             }
             objects.emplace_back(std::move(obj));
             ui->objects_list->addItem(obj.getText());
         }
+
         objectCounter = n_objects;
-        file.close();
+        cur_image_index = 0;
 
         std::cout << "Successfully loaded association dataset" << std::endl;
-
-        cur_image_index = 0;
         update();
     }
 }

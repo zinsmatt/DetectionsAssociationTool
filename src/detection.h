@@ -22,10 +22,16 @@
 
 struct Detection
 {
+  // all these parameters are only used for displaying ellipses when we click on a detection.
+  // For the association, only the index of the detection in the image is used.
   float x, y;
   float w, h;
   float a;  // radians
   int classe;
+  std::string classe_name;
+
+
+  int in_image_index;   // index of the detection in the image
 
   std::string serialize() const;
 };

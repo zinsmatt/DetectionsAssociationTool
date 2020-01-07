@@ -34,10 +34,32 @@ Image::Image(fs::path path, int init_index)
   image = cv::imread(fullpath, cv::IMREAD_UNCHANGED);
 }
 
-void Image::loadImageDetections(const std::string &filename)
+void Image::loadImageDetections(const std::string &filename_ellipses, const std::string& filename_classes)
 {
-  std::ifstream file(filename);
+  std::vector<int> classes;
+  std::vector<std::string> classes_names;
+
+  if (filename_classes.size() > 0)
+  {
+    std::ifstream file_classes(filename_classes);
+    std::string line;
+    while (std::getline(file_classes, line))
+    {
+      std::stringstream ss;
+      ss.str(line);
+      int classe;
+      ss >> classe;
+      std::string classe_name = line.substr(line.find_first_of(' '));
+      classes.push_back(classe);
+      classes_names.push_back(classe_name);
+    }
+    file_classes.close();
+  }
+
+
+  std::ifstream file(filename_ellipses);
   std::string line;
+  int index = 0;
   while (std::getline(file, line))
   {
     if (line.size() > 0 && line[0] != '#')
@@ -53,9 +75,16 @@ void Image::loadImageDetections(const std::string &filename)
       ss >> det.a;
       det.w *= 2;
       det.h *= 2;
-      //ss >> det.classe;
+      det.in_image_index = detections.size();
+
+      if (classes.size() > 0)
+      {
+          det.classe = classes[index];
+          det.classe_name = classes_names[index];
+      }
 
       detections.emplace_back(det);
+      ++index;
     }
   }
   file.close();

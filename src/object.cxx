@@ -25,15 +25,10 @@ Object::Object(int i, int n)
   observations.resize(n);
 }
 
-void Object::setObservation(int index, const Detection &det) {
+void Object::setObservation(int index, const Detection* det/*const Detection &det*/) {
   if (index >= 0 && index < observations.size())
   {
-    if (observations[index])
-      *observations[index] = det;
-    else
-    {
-      observations[index].reset(new Detection(det));
-    }
+    observations[index] = det;
   }
   else
   {
@@ -45,8 +40,11 @@ void Object::removeObservation(int index)
 {
     if (index >= 0 && index < observations.size() && observations[index])
     {
-        observations[index].reset(nullptr);
         observations[index] = nullptr;
+    }
+    else
+    {
+      std::cerr << "Impossible to remove observation at image " << index << std::endl;
     }
 }
 
@@ -55,12 +53,9 @@ QString Object::getText() const
   return QString::fromStdString("Object " + std::to_string(id));
 }
 
-const Detection *Object::getObservation(int image_idx)
+const Detection *Object::getObservation(int image_idx) const
 {
-    if (observations[image_idx])
-        return observations[image_idx].get();
-    else
-        return nullptr;
+    return observations[image_idx];
 }
 
 Eigen::MatrixX3d Object::getObservationsMatrix() const
@@ -68,7 +63,7 @@ Eigen::MatrixX3d Object::getObservationsMatrix() const
     Eigen::MatrixX3d mat(observations.size() * 3, 3);
     for (int i = 0; i < observations.size(); ++i)
     {
-        mat.block<3, 3>(i*3, 0) = convertEllipseToDualMatrix(observations[i].get());
+        mat.block<3, 3>(i*3, 0) = convertEllipseToDualMatrix(observations[i]);
     }
     return mat;
 }

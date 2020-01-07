@@ -33,12 +33,12 @@ class Object
 public:
   Object(int i, int n);
 
-  void setObservation(int index, const Detection& det);
+  void setObservation(int index, const Detection *det);
   void removeObservation(int index);
 
   QString getText() const;
 
-  const Detection* getObservation(int image_idx);
+  const Detection* getObservation(int image_idx) const;
 
   Eigen::MatrixX3d getObservationsMatrix() const;
 
@@ -49,7 +49,7 @@ public:
 
 private:
   int id;
-  std::vector<std::unique_ptr<Detection>> observations;
+  std::vector<const Detection*> observations;
 };
 
 #endif // OBJECT_H
