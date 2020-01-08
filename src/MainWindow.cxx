@@ -136,7 +136,7 @@ void MainWindow::openImagesDataset()
 
   QFileDialog dialog;
 //  dialog.setDirectory("/home/matt/dev/MaskRCNN/maskrcnn-benchmark/output/detections");
-  dialog.setDirectory("/home/mzins/Dataset/rgbd_dataset_freiburg2_desk/MaskRCNN_detections");
+  dialog.setDirectory("/home/mzins/Datasets/TUM_RGB-D/rgbd_dataset_freiburg2_desk/maskRCNN_results");
   dialog.setFileMode(QFileDialog::Directory);
   int ret = dialog.exec();
   auto folder = dialog.directory();
@@ -315,7 +315,12 @@ bool MainWindow::save()
     ///     .used_images.txt just contains the name of each image
     ///     .ellipses_associations
     ///
-    auto outputFilename = QFileDialog::getSaveFileName(this, tr("Save the detections associations"), "./", tr("YAML File (*.yaml, *.yml)")).toStdString();
+    auto dialog = QFileDialog(nullptr, tr("Save the detections associations"), "./", tr("Yaml File (*.yaml *.yml)"));
+    dialog.setDefaultSuffix(".yaml");
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    if (!dialog.exec())
+        return false;
+    auto outputFilename = dialog.selectedFiles().front().toStdString();
     if (outputFilename.size() > 0)
     {
         YAML::Node data_node;
@@ -350,7 +355,7 @@ bool MainWindow::save()
             }
             data_node["objects"].push_back(object_node);
         }
-        std::ofstream fileo("test.yaml");
+        std::ofstream fileo(outputFilename);
         fileo << data_node;
         fileo.close();
 
@@ -364,25 +369,25 @@ void MainWindow::load()
     /// this functions reload the necessary data (images + detections) to be able to continue editing an association file
     ///
 
-    auto datasetFilename = QFileDialog::getOpenFileName(this, tr("Open the detections associations"), "./", tr("YAML File (*.yaml, *.yml)")).toStdString();
+    auto datasetFilename = QFileDialog::getOpenFileName(this, tr("Open the detections associations"), "./", tr("Yaml File (*.yaml *.yml)")).toStdString();
     if (datasetFilename.size() > 0)
     {
         // CLEAR
         clear();
 
-
-        auto data = YAML::LoadFile("/home/mzins/dev/DetectionsAssociationTool/build/test.yaml");
-        fs::path folder = data["images"]["folder"].as<std::string>();
+        auto data = YAML::LoadFile(datasetFilename);
+        fs::path images_folder = data["images"]["folder"].as<std::string>();
+        fs::path detections_folder = data["detections_folder"].as<std::string>();
         auto const& names = data["images"]["names"].as<std::vector<std::string>>();
         auto const& ids = data["images"]["ids"].as<std::vector<int>>();
         const int n_images = names.size();
         for (int i = 0; i < n_images; ++i)
         {
-            fs::path full_path = folder / fs::path(names[i]);
+            fs::path full_path = images_folder / fs::path(names[i]);
             Image image(full_path.generic_string() , ids[i]);
-            fs::path detections_path = full_path;
+            fs::path detections_path = detections_folder / fs::path(names[i]);
             detections_path.replace_extension(".ellipses");
-            fs::path classes_path = full_path;
+            fs::path classes_path = detections_path;
             classes_path.replace_extension(".classes");
             full_path.replace_extension(".classes");
             image.loadImageDetections(detections_path.generic_string(), classes_path.generic_string());
